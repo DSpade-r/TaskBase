@@ -1,4 +1,0 @@
-C:\Projects\TaskBase\SQLDB\bin\Debug\SQLDB.dll
-C:\Projects\TaskBase\SQLDB\bin\Debug\SQLDB.pdb
-C:\Projects\TaskBase\SQLDB\obj\Debug\SQLDB.dll
-C:\Projects\TaskBase\SQLDB\obj\Debug\SQLDB.pdb
