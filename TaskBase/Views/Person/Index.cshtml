@@ -1,0 +1,50 @@
+﻿@model IEnumerable<TaskBase.Models.PersonInfo>
+@using TaskBase.Infrastructure
+
+<h2>Просмотр исполнителей</h2>
+<p>
+@Html.ActionLink("Добавить", "Create") 
+</p>
+<table class="table table-striped ">
+    <tr>
+        <th>
+            <span></span>
+            @Html.DisplayName("Номер")
+        </th>
+        <th>
+            <span></span>
+            @Html.DisplayName("Фамилия")
+        </th>
+        <th>
+            <span></span>
+            @Html.DisplayName("Имя")
+        </th>
+        <th>
+            <span></span>
+            @Html.DisplayName("Отчество")
+        </th>       
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(it => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(it => item.LastName)
+            </td>
+            <td>
+                @Html.DisplayFor(it => item.FirstName)
+            </td>
+            <td>
+                @Html.DisplayFor(it => item.MiddleName)
+            </td>            
+            <td>                
+                @Html.ActionLink("Изменить", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Удалить", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+    }
+</table>

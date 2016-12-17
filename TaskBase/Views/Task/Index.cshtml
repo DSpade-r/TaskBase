@@ -1,0 +1,71 @@
+﻿@model IEnumerable<TaskBase.Models.TaskInfo>
+@using TaskBase.Infrastructure
+
+<h2>Просмотр задач</h2>
+<p>
+    @Html.ActionLink("Добавить", "Create") 
+</p>
+<table class="table table-striped ">
+    <tr>
+        <th>
+            <span></span>
+            @Html.DisplayName("Номер")
+        </th>
+        <th>
+            <span></span>
+            @Html.DisplayName("Название")
+        </th>
+        <th>
+            <span></span>
+            @Html.DisplayName("Работа")
+        </th>
+        <th>
+            <span></span>
+            @Html.DisplayName("Дата начала")
+        </th>
+        <th>
+            <span></span>
+            @Html.DisplayName("Дата окончания")
+        </th>
+        <th>
+            <span></span>
+            @Html.DisplayName("Статус")
+        </th>
+        <th>
+            <span></span>
+            @Html.DisplayName("Исполнитель")
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(it => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(it => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(it => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(it => item.Start)
+            </td>
+            <td>
+                @Html.DisplayFor(it => item.Stop)
+            </td>
+            <td>
+                @Html.Raw((item.Status).ToStringX())
+            </td>
+            <td>
+                @Html.DisplayFor(it => item.Person)
+            </td>
+            <td>
+                @Html.ActionLink("Изменить", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Удалить", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+    }
+</table>

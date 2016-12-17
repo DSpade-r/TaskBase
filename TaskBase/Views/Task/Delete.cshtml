@@ -1,0 +1,72 @@
+﻿@model TaskBase.Models.TaskInfo
+@using TaskBase.Infrastructure
+<h2></h2>
+
+<h3>Вы уверены?</h3>
+<div>
+    <h4>Удаление задачи</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            Идентификатор
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Id)
+        </dd>
+
+        <dt>
+            Название
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+
+        <dt>
+            Работа
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+        <dt>
+            Дата начала
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Start)
+        </dd>
+        <dt>
+            Дата окончания
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Stop)
+        </dd>
+        <dt>
+            Статус
+        </dt>
+
+        <dd>
+            @Html.Raw(Model.Status.ToStringX())
+        </dd>
+        <dt>
+            Исполнитель
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Person)
+        </dd>
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Удалить" class="btn btn-default" /> |
+            @Html.ActionLink("Назад к списку задач", "Index")
+        </div>
+    }
+</div>
