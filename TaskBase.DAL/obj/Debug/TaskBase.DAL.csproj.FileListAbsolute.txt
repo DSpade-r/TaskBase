@@ -1,0 +1,5 @@
+C:\Projects\TaskBase\TaskBase.DAL\bin\Debug\TaskBase.DAL.dll
+C:\Projects\TaskBase\TaskBase.DAL\bin\Debug\TaskBase.DAL.pdb
+C:\Projects\TaskBase\TaskBase.DAL\obj\Debug\TaskBase.DAL.dll
+C:\Projects\TaskBase\TaskBase.DAL\obj\Debug\TaskBase.DAL.pdb
+C:\Projects\TaskBase\TaskBase.DAL\obj\Debug\TaskBase.DAL.csprojResolveAssemblyReference.cache

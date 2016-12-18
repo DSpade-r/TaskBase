@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Configuration;
 using System.Web.Mvc;
+using TaskBase.DAL;
 using TaskBase.Infrastructure;
 using TaskBase.Models;
 
@@ -16,93 +17,16 @@ namespace TaskBase.Controllers
 {    
     public class TaskController : Controller
     {
+        private DataBase db;
 
-        public List<TaskInfo> GetListTasks()
+        public TaskController()
         {
             string connectionString =
             WebConfigurationManager.ConnectionStrings["TaskBase"].ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionString);
-            string sqlTask = "SELECT * FROM Tasks; SELECT * FROM Persons";
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlTask, connection);
-            DataSet dataset = new DataSet();
-            adapter.Fill(dataset, "Tasks");
-            DataTable tasks = dataset.Tables[0];
-            DataTable persons = dataset.Tables[1];
-            List<TaskInfo> Tasks = new List<TaskInfo>();
-            dataset.Relations.Add("Person_Task", persons.Columns["Id"], tasks.Columns["Person_Id"]);
-            foreach (DataRow row in tasks.Rows)
-            {
-                TaskInfo item = new TaskInfo();
-                item.Id = (int)row["Id"];
-                item.Title = row["Title"].ToString();
-                item.Description = row["Description"].ToString();
-                item.Start = (DateTime)row["Start"];
-                item.Stop = (DateTime)row["Stop"];
-                item.Status = (StatusSet)row["Status"];
-                var personRow = row.GetParentRow("Person_Task");
-                item.Person = personRow[2] + " " + personRow[1] + " " + personRow[3];
-                Tasks.Add(item);
-            }
-            return Tasks;
+            db = new DataBase(connectionString);    //инициализация DAL строкой подсключения из вэбконфига
         }
-        public List<PersonInfo> GetListPerson()
-        {
-            string connectionString =
-            WebConfigurationManager.ConnectionStrings["TaskBase"].ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionString);
-            string sqlPerson = "SELECT * FROM Persons";
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlPerson, connection);
-            DataSet dataset = new DataSet();
-            adapter.Fill(dataset, "Persons");
-            DataTable persons = dataset.Tables[0];
-            List<PersonInfo> Persons = new List<PersonInfo>();
-            foreach (DataRow row in persons.Rows)
-            {
-                PersonInfo item = new PersonInfo();
-                item.Id = (int)row["Id"];
-                item.FirstName = row["FirstName"].ToString();
-                item.LastName = row["LastName"].ToString();
-                item.MiddleName = row["MiddleName"].ToString();
-                Persons.Add(item);
-            }
-            return Persons;
-        }
-        public void AddTaskToDB(TaskInfo task)
-        {
-            string connectionString =
-            WebConfigurationManager.ConnectionStrings["TaskBase"].ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionString);
-            string sql = string.Format("Insert Into Tasks" +
-                   "(Title, Description, Start, Stop, Status, Person_Id) Values(@Title, @Description, @Start, @Stop, @Status, @Person_Id)");
 
-            using (SqlCommand cmd = new SqlCommand(sql, connection))
-            {
-                connection.Open();
-                // Добавить параметры
-                cmd.Parameters.AddWithValue("@Title", task.Title);
-                cmd.Parameters.AddWithValue("@Description", task.Description);
-                cmd.Parameters.AddWithValue("@Start", task.Start);
-                cmd.Parameters.AddWithValue("@Stop", task.Stop);
-                cmd.Parameters.AddWithValue("@Status", task.Status );
-                cmd.Parameters.AddWithValue("@Person_Id", task.Person);
-
-                cmd.ExecuteNonQuery();
-                connection.Close();
-            }
-            using (SqlCommand cmd = new SqlCommand(sql, connection))
-            {
-                connection.Open();
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (SqlException ex)
-                {
-                    Console.Write(ex.Message);
-                }
-                connection.Close();
-            }
-        }
+        //Получение задачи из списка задач по идентификатору
         public TaskInfo GetTaskFromList(int id, List<TaskInfo> tasks)
         {
             TaskInfo task = new TaskInfo();
@@ -113,116 +37,11 @@ namespace TaskBase.Controllers
             }
             return task;
         }
-        public void DelTaskFromDB(int id)
-        {
-            string connectionString =
-            WebConfigurationManager.ConnectionStrings["TaskBase"].ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionString);
-            string sql = string.Format("Delete from Tasks where Id = '{0}'", id);
-            //connection.Open();
-            using (SqlCommand cmd = new SqlCommand(sql, connection))
-            {
-                connection.Open();
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (SqlException ex)
-                {
-                    Console.Write(ex.Message);
-                }
-                connection.Close();
-            }
-        }
-        public void EditTaskInDB(TaskInfo task)
-        {
-            string connectionString =
-                        WebConfigurationManager.ConnectionStrings["TaskBase"].ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionString);
-            string sqlTask = "SELECT * FROM Tasks";
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlTask, connection);
-            DataSet dataset = new DataSet();
-            adapter.Fill(dataset, "Tasks");
-            DataTable tasks = dataset.Tables[0];
-            tasks.Rows[0].Table.PrimaryKey = new DataColumn[] { tasks.Columns[0] };
-            DataRow row = tasks.Rows.Find(task.Id);
-            row.BeginEdit();
-            row["Title"] = task.Title;
-            row["Description"] = task.Description;
-            row["Start"] = task.Start;
-            row["Stop"] = task.Stop;
-            row["Status"] = task.Status;
-            row["Person_Id"] = task.Person;
-            row.EndEdit();
-            SqlCommandBuilder objCommandBuilder = new SqlCommandBuilder(adapter);
-            adapter.Update(dataset, "Tasks");            
-        }
-        public TaskController()
-        {
 
-        }
-        public ActionResult Index()
-        {
-            return View(GetListTasks());
-        }
-        public ActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            return View(GetTaskFromList((int)id, GetListTasks()));
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id)
-        {
-            DelTaskFromDB((int)id);
-            return RedirectToAction("Index");
-        }
-        public ActionResult Create()
-        {
-            return View(new TaskInfo() { StatusList = StatusDropDownList(), Persons = PersonsDropDownList() });
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(TaskInfo task)
-        {
-            if (ModelState.IsValid)
-            {
-                AddTaskToDB(task);
-                return RedirectToAction("Index");
-            }
-            return View(new TaskInfo() { StatusList = StatusDropDownList(), Persons = PersonsDropDownList() });
-        }
-        public ActionResult Edit(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            TaskInfo task = GetTaskFromList((int)id, GetListTasks());
-            task.Persons = PersonsDropDownList();
-            task.StatusList = StatusDropDownList();
-            return View(task);
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(TaskInfo taskMod)
-        {
-            if (ModelState.IsValid)
-            {
-                EditTaskInDB(taskMod);
-                return RedirectToAction("Index");
-            }
-            TaskInfo task = GetTaskFromList(taskMod.Id, GetListTasks());
-            task.Persons = PersonsDropDownList();
-            task.StatusList = StatusDropDownList();
-            return View(task);
-        }
+        //Формирование списка SelectListItem из описаний Enum StatusSet
         private List<SelectListItem> StatusDropDownList()
         {
-            var enumData = from StatusSet e in Enum.GetValues(typeof(StatusSet))
+            var enumData = from Models.StatusSet e in Enum.GetValues(typeof(Models.StatusSet))
                            select new { Name = e.ToStringX(), Id = e.ToString() };
             List<SelectListItem> list = new List<SelectListItem>();
             foreach (var item in enumData)
@@ -231,9 +50,11 @@ namespace TaskBase.Controllers
             }            
             return list;
         }
+
+        //Формирование SelectList из коллекции bcgjkybntktq(из базы данных) для DropDownList
         private List<SelectListItem> PersonsDropDownList()
         {
-            List<PersonInfo> persons = GetListPerson();
+            List<PersonInfo> persons = db.GetListPerson().ConvertToListPersonInfo();
             List<SelectListItem> list = new List<SelectListItem>();
             foreach (var item in persons)
             {
@@ -241,5 +62,81 @@ namespace TaskBase.Controllers
             }
             return list;
         }
+
+        //GET - выводит список задач
+        public ActionResult Index()
+        {
+            return View(db.GetListTasks().ConvertToListTaskInfo());
+        }
+
+        //GET - форма для удаления задачи по идентификатору(подтверждение на удаление)
+        public ActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            return View(GetTaskFromList((int)id, db.GetListTasks().ConvertToListTaskInfo()));
+        }
+
+        //POST - удаление задачи из базы данных по идентификатору(он же первичный ключ)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id)
+        {
+            db.DelTaskFromDB((int)id);
+            return RedirectToAction("Index");
+        }
+
+        //GET - форма для добавления задачи
+        public ActionResult Create()
+        {
+            //через модель передаю ListItem для DropDownList
+            return View(new TaskInfo() { StatusList = StatusDropDownList(), Persons = PersonsDropDownList() });
+        }
+
+        //POST - создание(добавление) новой задачи в базе данных
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(TaskInfo task)
+        {
+            if (ModelState.IsValid)
+            {
+                db.AddTaskToDB(task.ConvertToTask());
+                return RedirectToAction("Index");
+            }
+            //через модель передаю ListItem для DropDownList
+            return View(new TaskInfo() { StatusList = StatusDropDownList(), Persons = PersonsDropDownList() });
+        }
+
+        //GET - форма для изменения(редактирования) полей задачи
+        public ActionResult Edit(int? id) //id из представления Index указывает на выбранную задачу
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            TaskInfo task = GetTaskFromList((int)id, db.GetListTasks().ConvertToListTaskInfo());
+            task.Persons = PersonsDropDownList();
+            task.StatusList = StatusDropDownList();
+            return View(task);
+        }
+
+        //POST -  внесение измененных полей в базу данных(идентификатор берется из сущности TaskInfo)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(TaskInfo taskMod)
+        {
+            if (ModelState.IsValid)
+            {
+                db.EditTaskInDB(taskMod.ConvertToTask());
+                return RedirectToAction("Index");
+            }
+            TaskInfo task = GetTaskFromList(taskMod.Id, db.GetListTasks().ConvertToListTaskInfo());
+            task.Persons = PersonsDropDownList();
+            task.StatusList = StatusDropDownList();
+            return View(task);
+        }
+       
     }
 }

@@ -45,3 +45,5 @@ C:\Projects\TaskBase\TaskBase\obj\Debug\TaskBase.csprojResolveAssemblyReference.
 C:\Projects\TaskBase\TaskBase\obj\Debug\TaskBase.dll
 C:\Projects\TaskBase\TaskBase\obj\Debug\TaskBase.pdb
 C:\Projects\TaskBase\TaskBase\bin\SQLDB.pdb
+C:\Projects\TaskBase\TaskBase\bin\TaskBase.DAL.dll
+C:\Projects\TaskBase\TaskBase\bin\TaskBase.DAL.pdb
