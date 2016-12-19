@@ -112,23 +112,27 @@ namespace TaskBase.DAL
         public void EditTaskInDB(Task task)
         {
             SqlConnection connection = new SqlConnection(connectionString);
-            string sqlTask = "SELECT * FROM Tasks";
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlTask, connection);
-            DataSet dataset = new DataSet();
-            adapter.Fill(dataset, "Tasks");
-            DataTable tasks = dataset.Tables[0];
-            tasks.Rows[0].Table.PrimaryKey = new DataColumn[] { tasks.Columns[0] };
-            DataRow row = tasks.Rows.Find(task.Id);
-            row.BeginEdit();
-            row["Title"] = task.Title;
-            row["Description"] = task.Description;
-            row["Start"] = task.Start;
-            row["Stop"] = task.Stop;
-            row["Status"] = task.Status;
-            row["Person_Id"] = task.Person;
-            row.EndEdit();
-            SqlCommandBuilder objCommandBuilder = new SqlCommandBuilder(adapter);
-            adapter.Update(dataset, "Tasks");
+            string sql = string.Format("Update Tasks Set Title = @Title, Description = @Description, Start = @Start, Stop = @Stop, Status = @Status, Person_Id = @Person_Id Where Id = '{0}'",
+            task.Id);
+            using (SqlCommand cmd = new SqlCommand(sql, connection))
+            {
+                connection.Open();
+                cmd.Parameters.AddWithValue("@Title", task.Title);
+                cmd.Parameters.AddWithValue("@Description", task.Description);
+                cmd.Parameters.AddWithValue("@Start", task.Start);
+                cmd.Parameters.AddWithValue("@Stop", task.Stop);
+                cmd.Parameters.AddWithValue("@Status", task.Status);
+                cmd.Parameters.AddWithValue("@Person_Id", task.Person);
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (SqlException ex)
+                {
+                    Console.Write(ex.Message);
+                }
+                connection.Close();
+            }
         }        
         //Добавляет исполнителя в базу данных
         public void AddPersonToDB(Person person)
@@ -144,7 +148,14 @@ namespace TaskBase.DAL
                 cmd.Parameters.AddWithValue("@FirstName", person.FirstName);
                 cmd.Parameters.AddWithValue("@LastName", person.LastName);
                 cmd.Parameters.AddWithValue("@MiddleName", person.MiddleName);
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (SqlException ex)
+                {
+                    Console.Write(ex.Message);
+                }
                 connection.Close();
             }
         }
@@ -172,20 +183,24 @@ namespace TaskBase.DAL
         public void EditPersonInDB(Person person)
         {
             SqlConnection connection = new SqlConnection(connectionString);
-            string sqlPerson = "SELECT * FROM Persons";
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlPerson, connection);
-            DataSet dataset = new DataSet();
-            adapter.Fill(dataset, "Persons");
-            DataTable persons = dataset.Tables[0];
-            persons.Rows[0].Table.PrimaryKey = new DataColumn[] { persons.Columns[0] };
-            DataRow row = persons.Rows.Find(person.Id);
-            row.BeginEdit();
-            row["FirstName"] = person.FirstName;
-            row["LastName"] = person.LastName;
-            row["MiddleName"] = person.MiddleName;
-            row.EndEdit();
-            SqlCommandBuilder objCommandBuilder = new SqlCommandBuilder(adapter);
-            adapter.Update(dataset, "Persons");
+            string sql = string.Format("Update Persons Set FirstName = @FirstName, LastName = @LastName, MiddleName = @MiddleName Where Id = '{0}'",
+            person.Id);
+            using (SqlCommand cmd = new SqlCommand(sql, connection))
+            {
+                connection.Open();
+                cmd.Parameters.AddWithValue("@FirstName", person.FirstName);
+                cmd.Parameters.AddWithValue("@LastName", person.LastName);
+                cmd.Parameters.AddWithValue("@MiddleName", person.MiddleName);
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (SqlException ex)
+                {
+                    Console.Write(ex.Message);
+                }
+                connection.Close();
+            }
         }
     }
 }
